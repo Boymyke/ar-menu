@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>LUMA · AR Menu</title>
+<meta name="description" content="Scan, point your phone at the table, and watch the menu come to life.">
+<meta name="theme-color" content="#07070b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+  <!-- camera passthrough + no-camera fallback backdrop -->
+  <video id="cam" playsinline muted autoplay aria-hidden="true"></video>
+  <div class="backdrop" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- 3D scene -->
+  <main class="scene" id="scene" aria-label="3D menu. Swipe to browse dishes, tap a dish for details.">
+    <div class="world" id="world">
+      <div class="floor" aria-hidden="true"></div>
+    </div>
+  </main>
+
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- top bar -->
+  <header class="bar">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><b>LUMA</b><small>AR menu</small></div>
+    <div class="bar-r">
+      <button class="chip" id="perfBtn" aria-label="Show performance stats">⚡</button>
+      <button class="chip" id="recenter" aria-label="Recenter dishes">◎</button>
+      <button class="cart" id="cartBtn" aria-label="Open order"><span class="bag" aria-hidden="true"></span><span id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <!-- bottom dock -->
+  <nav class="dock" aria-label="Dish navigation">
+    <button class="arrow" id="prev" aria-label="Previous dish">‹</button>
+    <div class="cap" id="cap" aria-live="polite">
+      <div class="cap-name" id="capName">&nbsp;</div>
+      <div class="cap-sub"><span id="capPrice"></span><span class="dots" id="dots"></span></div>
+    </div>
+    <button class="arrow" id="next" aria-label="Next dish">›</button>
+    <button class="view" id="viewBtn">View</button>
+  </nav>
+  <p class="hint" id="hint">Swipe to spin the table · tap a dish</p>
+  <div class="offscreen" id="off" aria-hidden="true"><span>Menu is this way</span><i>→</i></div>
+
+  <!-- scanning overlay -->
+  <div class="scan" id="scan" aria-live="polite">
+    <div class="brackets"><i></i><i></i><i></i><i></i></div>
+    <p id="scanTxt">Point at your table…</p>
+  </div>
+
+  <!-- dish sheet -->
+  <section class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="sName">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="s-top">
+      <div><h2 id="sName"></h2><p id="sDesc"></p></div>
+      <button class="x" data-close aria-label="Close">×</button>
+    </div>
+    <div class="meta">
+      <div><small>Energy</small><b id="sKcal"></b></div>
+      <div><small>Ready in</small><b id="sPrep"></b></div>
+      <div><small>Heat</small><b class="heat" id="sHeat"></b></div>
+    </div>
+    <div class="tags" id="sTags"></div>
+    <div class="acts">
+      <button class="ghost" id="explode">Explode layers</button>
+      <button class="add" id="add">Add · <span id="sPrice"></span></button>
+    </div>
+  </section>
+
+  <!-- cart sheet -->
+  <section class="sheet" id="cartSheet" role="dialog" aria-modal="false" aria-labelledby="cTitle">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="s-top"><h2 id="cTitle">Your order</h2><button class="x" data-close aria-label="Close">×</button></div>
+    <ul class="lines" id="lines"></ul>
+    <div class="total"><span>Total</span><b id="total">₦0</b></div>
+    <button class="add wide" id="send">Send to kitchen</button>
+  </section>
+
+  <!-- splash -->
+  <section class="splash" id="splash">
+    <div class="logo" aria-hidden="true"><span class="orbit"></span><span class="orbit o2"></span><span class="core"></span></div>
+    <h1>LUMA</h1>
+    <p class="tag">The menu, on your table.</p>
+    <button class="start" id="start">Open AR menu</button>
+    <button class="link" id="nocam">No camera? View in 3D</button>
+    <p class="ready" id="ready">&nbsp;</p>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+  <aside class="hud" id="hud" aria-label="Performance stats"></aside>
+</body>
+</html>

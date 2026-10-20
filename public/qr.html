@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LUMA · Table QR</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>
+  :root{--ink:#07070b;--saf:#ffb547;--holo:#5ef2ff}
+  *{box-sizing:border-box;margin:0}
+  body{min-height:100vh;display:grid;place-items:center;gap:20px;padding:24px;background:#16151c;font:15px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#f6f3ec}
+  .card{width:min(360px,100%);padding:30px 26px 24px;border-radius:26px;text-align:center;
+    background:radial-gradient(80% 50% at 50% 0%,rgba(255,181,71,.22),transparent 70%),var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .brand{letter-spacing:.42em;margin-right:-.42em;font-weight:700;font-size:26px}
+  .sub{color:rgba(246,243,236,.6);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+  .qr{margin:22px auto 18px;width:236px;height:236px;padding:12px;border-radius:20px;background:#fff;position:relative}
+  .qr::before{content:"";position:absolute;inset:-5px;border-radius:24px;border:2px solid var(--holo);opacity:.7}
+  .qr img,.qr svg{width:100%;height:100%;display:block}
+  h1{font-size:21px;line-height:1.2}
+  p{color:rgba(246,243,236,.66);margin-top:6px;font-size:14px}
+  .url{margin-top:16px;font:12px ui-monospace,Menlo,monospace;color:var(--saf);word-break:break-all}
+  .tools{display:flex;gap:10px}
+  button{font:inherit;font-weight:650;padding:12px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;cursor:pointer}
+  button.p{background:var(--saf);color:#1a1205;border:0}
+  @media print{body{background:#fff}.tools{display:none}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">LUMA</div>
+    <div class="sub">AR menu</div>
+    <div class="qr" id="qr" role="img" aria-label="QR code that opens the menu"></div>
+    <h1>Scan to see your food<br>on the table.</h1>
+    <p>Point your camera here, then at the table.</p>
+    <div class="url" id="url"></div>
+  </div>
+  <div class="tools">
+    <button class="p" id="dl">Download PNG</button>
+    <button onclick="print()">Print table card</button>
+  </div>
+<script src="/vendor/qrcode.js"></script>
+<script>
+  // Always encodes the domain this page is served from, so the QR is correct on any deploy URL.
+  // Override with ?url=https://example.com
+  const target = new URLSearchParams(location.search).get('url') || location.origin + '/';
+  const qr = qrcode(0, 'M'); qr.addData(target); qr.make();
+  document.getElementById('qr').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+  document.getElementById('url').textContent = target.replace(/^https?:\/\//, '');
+  document.getElementById('dl').onclick = () => {
+    const n = qr.getModuleCount(), m = 4, s = 24, size = (n + m * 2) * s, c = document.createElement('canvas');
+    c.width = c.height = size; const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, size, size); x.fillStyle = '#07070b';
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) x.fillRect((k + m) * s, (r + m) * s, s, s);
+    const a = document.createElement('a'); a.download = 'luma-menu-qr.png'; a.href = c.toDataURL('image/png'); a.click();
+  };
+</script>
+</body>
+</html>
