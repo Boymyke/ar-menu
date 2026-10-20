@@ -51,4 +51,4 @@ pick `Boymyke/ar-menu` → Framework: None, Build command: *(empty)*, Output dir
 and `CLOUDFLARE_ACCOUNT_ID`; every push to `main` deploys `public/` to the `ar-menu` Pages project.
 
 Then open `https://<your-domain>/qr.html` and print it — the QR will point at whatever domain Cloudflare gave you.
-The static `public/qr.png` encodes `https://ar-menu.pages.dev`; if Cloudflare assigns a different subdomain, run `npm run qr -- <url>`.
+Note: `ar-menu.pages.dev` is already taken by someone else, so Cloudflare will give this project a different subdomain. Use `/qr.html` (or `npm run qr -- <your-url>`) to get a QR for your real address.
