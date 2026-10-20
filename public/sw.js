@@ -1,6 +1,6 @@
 // Cache-first app shell: second visit loads with zero network.
-const V = 'luma-v1';
-const SHELL = ['/', '/index.html', '/app.css', '/app.js', '/icon.svg', '/manifest.webmanifest'];
+const V = 'luma-v2';
+const SHELL = ['/', '/index.html', '/app.css', '/app.js', '/tracker-worker.js', '/qr.svg', '/icon.svg', '/manifest.webmanifest'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k)))));

@@ -9,6 +9,8 @@
     "deploy": "npx --yes wrangler pages deploy public --project-name=ar-menu"
   },
   "devDependencies": {
+    "esbuild": "^0.28.2",
+    "jsqr": "^1.4.0",
     "qrcode": "^1.5.4",
     "qrcode-generator": "^1.4.4"
   }

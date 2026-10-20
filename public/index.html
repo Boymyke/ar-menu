@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>LUMA · AR Menu</title>
-<meta name="description" content="Scan, point your phone at the table, and watch the menu come to life.">
-<meta name="theme-color" content="#07070b">
+<meta name="description" content="Point your phone at the code on your table and the menu appears on it.">
+<meta name="theme-color" content="#0c0a08">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -14,84 +14,73 @@
 <script src="/app.js" defer></script>
 </head>
 <body>
-  <!-- camera passthrough + no-camera fallback backdrop -->
   <video id="cam" playsinline muted autoplay aria-hidden="true"></video>
   <div class="backdrop" aria-hidden="true"></div>
-  <div class="vignette" aria-hidden="true"></div>
 
-  <!-- 3D scene -->
-  <main class="scene" id="scene" aria-label="3D menu. Swipe to browse dishes, tap a dish for details.">
-    <div class="world" id="world">
-      <div class="floor" aria-hidden="true"></div>
+  <!-- 3D stage: .anchor is glued to the QR code every frame -->
+  <main class="stage" id="stage" aria-label="Dish on your table. Drag to turn it, tap to see its layers.">
+    <div class="anchor" id="anchor">
+      <div class="mat" aria-hidden="true"></div>
+      <div class="shadow" aria-hidden="true"></div>
+      <div class="lock" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="ripple" aria-hidden="true"></div>
+      <div class="turn" id="turn"><div class="dish" id="dish"></div></div>
     </div>
   </main>
+  <div class="label" id="label" aria-hidden="true"><b id="lName"></b><span id="lPrice"></span></div>
+
+  <!-- shown while the code isn't in view -->
+  <div class="guide" id="guide" aria-live="polite">
+    <div class="finder"><i></i><i></i><i></i><i></i><span class="scanline"></span></div>
+    <p id="guideTxt">Point at the code on your table</p>
+  </div>
 
   <canvas id="fx" aria-hidden="true"></canvas>
 
-  <!-- top bar -->
   <header class="bar">
-    <div class="brand"><span class="mark" aria-hidden="true"></span><b>LUMA</b><small>AR menu</small></div>
+    <div class="brand"><span class="sun" aria-hidden="true"></span><b>LUMA</b></div>
     <div class="bar-r">
-      <button class="chip" id="perfBtn" aria-label="Show performance stats">⚡</button>
-      <button class="chip" id="recenter" aria-label="Recenter dishes">◎</button>
-      <button class="cart" id="cartBtn" aria-label="Open order"><span class="bag" aria-hidden="true"></span><span id="cartCount">0</span></button>
+      <button class="pill ic" id="perfBtn" aria-label="Performance stats"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></button>
+      <button class="pill" id="cartBtn" aria-label="Your order"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7zM9 7a3 3 0 0 1 6 0"/></svg><span id="cartCount">0</span></button>
     </div>
   </header>
 
-  <!-- bottom dock -->
-  <nav class="dock" aria-label="Dish navigation">
-    <button class="arrow" id="prev" aria-label="Previous dish">‹</button>
-    <div class="cap" id="cap" aria-live="polite">
-      <div class="cap-name" id="capName">&nbsp;</div>
-      <div class="cap-sub"><span id="capPrice"></span><span class="dots" id="dots"></span></div>
-    </div>
-    <button class="arrow" id="next" aria-label="Next dish">›</button>
-    <button class="view" id="viewBtn">View</button>
-  </nav>
-  <p class="hint" id="hint">Swipe to spin the table · tap a dish</p>
-  <div class="offscreen" id="off" aria-hidden="true"><span>Menu is this way</span><i>→</i></div>
+  <button class="explode" id="explode" aria-pressed="false" aria-label="Show ingredient layers">
+    <svg viewBox="0 0 24 24"><path d="M4 17l8 4 8-4M4 12l8 4 8-4M12 3 4 7l8 4 8-4z"/></svg><span>Layers</span>
+  </button>
 
-  <!-- scanning overlay -->
-  <div class="scan" id="scan" aria-live="polite">
-    <div class="brackets"><i></i><i></i><i></i><i></i></div>
-    <p id="scanTxt">Point at your table…</p>
-  </div>
-
-  <!-- dish sheet -->
-  <section class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="sName">
-    <div class="grab" aria-hidden="true"></div>
-    <div class="s-top">
-      <div><h2 id="sName"></h2><p id="sDesc"></p></div>
-      <button class="x" data-close aria-label="Close">×</button>
+  <section class="panel" aria-label="Menu">
+    <div class="info">
+      <div class="info-t">
+        <p class="kicker" id="kicker"></p>
+        <h2 id="dName">&nbsp;</h2>
+        <p class="desc" id="dDesc"></p>
+        <p class="facts"><span id="dKcal"></span><span id="dPrep"></span><span class="heat" id="dHeat"></span></p>
+      </div>
+      <button class="add" id="add"><span>Add</span><b id="dPrice"></b></button>
     </div>
-    <div class="meta">
-      <div><small>Energy</small><b id="sKcal"></b></div>
-      <div><small>Ready in</small><b id="sPrep"></b></div>
-      <div><small>Heat</small><b class="heat" id="sHeat"></b></div>
-    </div>
-    <div class="tags" id="sTags"></div>
-    <div class="acts">
-      <button class="ghost" id="explode">Explode layers</button>
-      <button class="add" id="add">Add · <span id="sPrice"></span></button>
-    </div>
+    <div class="strip" id="strip" role="tablist" aria-label="Dishes"></div>
   </section>
 
-  <!-- cart sheet -->
-  <section class="sheet" id="cartSheet" role="dialog" aria-modal="false" aria-labelledby="cTitle">
-    <div class="grab" aria-hidden="true"></div>
-    <div class="s-top"><h2 id="cTitle">Your order</h2><button class="x" data-close aria-label="Close">×</button></div>
+  <section class="sheet" id="cartSheet" role="dialog" aria-labelledby="cTitle">
+    <div class="grab"></div>
+    <div class="s-top"><h2 id="cTitle">Your order</h2><button class="x" id="cartClose" aria-label="Close">×</button></div>
     <ul class="lines" id="lines"></ul>
     <div class="total"><span>Total</span><b id="total">₦0</b></div>
     <button class="add wide" id="send">Send to kitchen</button>
   </section>
 
-  <!-- splash -->
   <section class="splash" id="splash">
-    <div class="logo" aria-hidden="true"><span class="orbit"></span><span class="orbit o2"></span><span class="core"></span></div>
+    <div class="demo" aria-hidden="true">
+      <div class="d-qr"><i></i><i></i><i></i><b></b></div>
+      <div class="d-plate"><span></span></div>
+      <div class="d-phone"></div>
+    </div>
+    <p class="eyebrow">Table menu · Lagos</p>
     <h1>LUMA</h1>
-    <p class="tag">The menu, on your table.</p>
-    <button class="start" id="start">Open AR menu</button>
-    <button class="link" id="nocam">No camera? View in 3D</button>
+    <p class="lede">Keep the code on your table in view and every dish appears right on it.</p>
+    <button class="start" id="start">Start camera</button>
+    <button class="link" id="nocam">No camera? Try demo mode</button>
     <p class="ready" id="ready">&nbsp;</p>
   </section>
 
